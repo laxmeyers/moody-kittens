@@ -275,3 +275,6 @@ button.btn-special:hover{
 .hidden{
   display: none !important;
 }
+.font{
+  font-family: 'Rowdies', cursive;
+}

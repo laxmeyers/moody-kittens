@@ -1,4 +1,5 @@
 let kittens = []
+let empty = []
 /**
  * Called when submitting the new Kitten Form
  * This method will pull data from the form
@@ -7,6 +8,26 @@ let kittens = []
  * Then reset the form
  */
 function addKitten(event) {
+  event.preventDefault();
+  let form = event.target
+  number = generateId();
+  // console.log(number)
+
+  let catName = form.catName.value
+
+  currentCat = kittens.find(kitten => kitten.name.toLowerCase() == catName.toLowerCase())
+
+  if(!currentCat){
+    currentCat = {name: catName, mood: 'angry', affection: 3, id: number}
+    kittens.push(currentCat)
+    saveKittens()
+  }else{
+    alert(`Cat name ${catName} already exists. Pick a different name.`)
+  }
+  // console.log(currentCat)
+
+  form.reset()
+  drawKittens()
 }
 
 /**
@@ -14,6 +35,7 @@ function addKitten(event) {
  * Saves the string to localstorage at the key kittens 
  */
 function saveKittens() {
+  window.localStorage.setItem('kittens', JSON.stringify(kittens))
 }
 
 /**
@@ -22,12 +44,40 @@ function saveKittens() {
  * the kittens array to the retrieved array
  */
 function loadKittens() {
+  let kittensData = JSON.parse(window.localStorage.getItem("kittens"))
+    if(kittensData){
+        kittens = kittensData
+    }
 }
 
 /**
  * Draw all of the kittens to the kittens element
  */
 function drawKittens() {
+  let kittensElem = document.getElementById('kittens');
+  let kitMem = '';
+  let count = 0;
+  // console.log(kittens[count].name)
+  
+
+  kittens.forEach(kitten => {
+    let pic = ''
+    let catCard = '';
+    if (kitten.mood == 'angry'){
+      pic =  "😾"
+    } if (kitten.mood == 'scared'){
+      pic = "🙀"
+    } if (kitten.mood == 'happy'){
+      pic = "😸"
+    }
+
+    catCard += `<div class="card font">${pic} <br> ${kitten.name}, ${kitten.mood} <br>
+    <button onclick='pet(kittens[${count}])'>pet</button> <button onclick='catnip(kittens[${count}])'>CatNip</button> <br>
+    <button onclick='deleteCat(${count})'>Delete</button> </div>`
+    kitMem += catCard
+    count+=1
+  });
+  kittensElem.innerHTML = kitMem
 }
 
 
@@ -36,7 +86,20 @@ function drawKittens() {
  * @param {string} id 
  * @return {Kitten}
  */
-function findKittenById(id) {
+function moodChange(count) {
+
+  if(count.affection >= 3.5) {
+    count.mood = "happy"
+  } if ((count.affection >= 2) && (count.affection < 3.5)){
+    count.mood = "angry"
+  } if (count.affection < 2){
+    count.mood = "scared"
+  }
+  // console.log(count.mood, count.affection)
+  
+  drawKittens()
+  saveKittens()
+  
 }
 
 
@@ -48,7 +111,16 @@ function findKittenById(id) {
  * otherwise decrease the affection
  * @param {string} id 
  */
-function pet(id) {
+function pet(count) {
+  let num = Math.random() * 1
+  
+  if ((num > 0.5) && (count.affection < 5)) {
+    count.affection += 0.5
+  } if ((num <= 0.5) && (count.affection > 0)) {
+    count.affection -= 0.5
+  }
+
+  moodChange(count);
 }
 
 /**
@@ -57,14 +129,10 @@ function pet(id) {
  * Set the kitten's affection to 5
  * @param {string} id
  */
-function catnip(id) {
-}
+function catnip(count) {
+  count.affection = 5
 
-/**
- * Sets the kittens mood based on its affection
- * @param {Kitten} kitten 
- */
-function setKittenMood(kitten) {
+  moodChange(count)
 }
 
 /**
@@ -72,6 +140,19 @@ function setKittenMood(kitten) {
  * remember to save this change
  */
 function clearKittens(){
+  localStorage.removeItem('kittens')
+  kittens = []
+  drawKittens()
+}
+
+function deleteCat(count){
+  kittens.splice(count, 1)
+  empty = kittens
+  clearKittens()
+  kittens = empty
+  empty = []
+  saveKittens()
+  drawKittens()
 }
 
 /**
@@ -80,7 +161,8 @@ function clearKittens(){
  */
 function getStarted() {
   document.getElementById("welcome").remove();
-  console.log('Good Luck, Take it away')
+  console.log('Good Luck, Take it away');
+  drawKittens();
 }
 
 
@@ -102,3 +184,5 @@ function generateId() {
 }
 
 loadKittens();
+
+// console.log(kittens[0].id)
